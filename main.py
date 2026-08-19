@@ -1,6 +1,7 @@
 import logging
 from typing import Optional
 from fastapi import FastAPI, Request, Header, HTTPException
+from fastapi.responses import HTMLResponse, JSONResponse
 from models import BlogPost, Campaign, SocialPostEntry
 from image_pipeline import generate_platform_image_variants
 from caption_engine import generate_platform_captions
@@ -17,7 +18,12 @@ app = FastAPI(
     version="1.0.0"
 )
 
-from fastapi.responses import JSONResponse, HTMLResponse
+@app.on_event("startup")
+def startup_seed():
+    if not store.campaigns:
+        from seed_demo_data import seed
+        seed()
+        logger.info("🌱 Seeded initial campaign & platform variants for Social Publisher.")
 
 @app.get("/health")
 def health_check():
